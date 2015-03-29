@@ -1,14 +1,11 @@
 package main
 
 import (
-  "fmt"
   "net/http"
   "encoding/json"
 )
 
 func handler(res http.ResponseWriter, req *http.Request) {
-  // fmt.Println(req.URL)
-
   response := map[string]string{}
 
   if req.URL.String() == "/" {
