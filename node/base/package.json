@@ -6,6 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "contributors": [{
+    "name": "Jake Burkhead",
+    "url": "https://github.com/jlburkhead"
+  }, {
+    "name": "Nick Bottomley",
+    "url": "https://github.com/nickb1080"
+  }],
   "license": "MIT"
 }
