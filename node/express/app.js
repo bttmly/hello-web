@@ -8,7 +8,7 @@ app.get("/", function (req, res) {
 
 app.use(function (req, res) {
   res.status(404);
-  res.json({error: "Not Found"});
+  res.json({error: "Not found"});
 });
 
 app.listen(8080);

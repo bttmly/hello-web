@@ -3,6 +3,9 @@ import json
 
 class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
   def do_GET(self):
+
+    self.send_header("content-type", "application/json")
+
     if self.path == "/":
       self.send_response(200)
       self.end_headers()

@@ -11,7 +11,7 @@ func handler(res http.ResponseWriter, req *http.Request) {
   if req.URL.String() == "/" {
     response["message"] = "Hello, World!"
   } else {
-    response["error"] = "Not Found"
+    response["error"] = "Not found"
   }
 
   var str, _ = json.Marshal(response)
