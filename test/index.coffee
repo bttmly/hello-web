@@ -3,8 +3,6 @@ request = require "superagent"
 
 URL = "http://localhost:8080"
 
-JSON =
-
 describe "GET /", ->
   it "200s", (done) ->
     request
@@ -12,7 +10,7 @@ describe "GET /", ->
       .end (err, resp) ->
         expect(resp.status).to.equal 200
         expect(resp.headers['content-type']).to.equal "application/json"
-        expect(resp.body.message).to.equal "Hello, World!"
+        expect(resp.body).to.deep.equal message: "Hello, World!"
         do done
 
 describe "GET /no-such-route", ->
@@ -22,5 +20,5 @@ describe "GET /no-such-route", ->
       .end (err, resp) ->
         expect(resp.status).to.equal 404
         expect(resp.headers['content-type']).to.equal "application/json"
-        expect(resp.body.error).to.equal "Not found"
+        expect(resp.body).to.deep.equal error: "Not found"
         do done
