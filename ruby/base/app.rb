@@ -9,6 +9,7 @@ server.mount_proc '/' do |req, res|
     res.body = {message: 'Hello, World!'}.to_json
   else
     res.body = {error: 'Not found'}.to_json
+    res.status = 404
   end
 end
 

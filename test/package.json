@@ -1,0 +1,18 @@
+{
+  "name": "hello-web-test",
+  "version": "0.0.0",
+  "description": "",
+  "main": " ",
+  "scripts": {
+    "test": "mocha --compilers coffee:coffee-script/register index.coffee"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chai": "^2.2.0",
+    "coffee-script": "^1.9.1",
+    "mocha": "^2.2.1",
+    "request": "^2.54.0",
+    "superagent": "^1.1.0"
+  }
+}
