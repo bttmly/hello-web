@@ -9,4 +9,4 @@ WORKDIR /server
 
 EXPOSE 8080
 
-RUN nodejs index.js
+CMD nodejs app.js
