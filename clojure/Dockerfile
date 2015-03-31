@@ -9,4 +9,6 @@ WORKDIR /server
 
 EXPOSE 8080
 
-RUN cd app && lein deps && lein run
+WORKDIR /server/app
+
+CMD lein deps && lein run
