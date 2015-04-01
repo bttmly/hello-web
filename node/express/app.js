@@ -11,4 +11,6 @@ app.use(function (req, res) {
   res.json({error: "Not found"});
 });
 
+console.log("node/express implementation started");
+
 app.listen(8080);

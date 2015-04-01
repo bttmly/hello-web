@@ -3,6 +3,8 @@
 
 async = require "async"
 
+timeout = (t, fn) -> setTimeout fn, t
+
 run_implementation = (which, cb) ->
 
   console.log which
@@ -23,35 +25,51 @@ run_implementation = (which, cb) ->
   coffee = join __dirname, "node_modules", "coffee-script/register"
   spec = join __dirname, "spec.coffee"
 
-  server = exec "#{config.cmd} #{target}/app#{config.ext}", (err, stdout, stderr) ->
+  server_cmd = "#{config.cmd} #{target}/app#{config.ext}"
 
+  console.log "starting server... #{server_cmd}"
 
-  runner = exec "#{mocha} --compilers coffee:#{coffee} --timeout 5000 #{spec}", (err, stdout, stderr) ->
-    server.kill()
-    if err
+  server = exec server_cmd, (err, stdout, stderr) ->
+  # server = spawn config.cmd, ["#{target}/app#{config.ext}"], (err, stdout, stderr) -> 
+
+  timeout 2000, ->
+    runner_cmd = "#{mocha} --compilers coffee:#{coffee} --timeout 5000 #{spec}"
+    
+    console.log "starting runner... #{runner_cmd}"
+
+    runner = exec runner_cmd, (err, stdout, stderr) ->
+    # runner = spawn "#{mocha}", ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec], (err, stdout, stderr) ->
+
+      server.kill()
+      if err
+        console.log stdout
+        error = new Error "Tests failed for #{which}"
+        return cb(error)
+
       console.log stdout
-      error = new Error "Tests failed for #{which}"
-      return cb(error)
 
-    console.log stdout
-    setTimeout cb, 1000
+      console.log "#{which} runner exited..."
+      timeout 2000, cb
 
-  runner.on "exit", (code, signal) ->
-    console.log "runner exited", code, signal
-    server.kill("SIGTERM")
+
 
 impls = [
   "node/base"
   "node/express"
   "ruby/base"
   "ruby/sinatra"
-  "python/base"
-  "python/flask"
+  # "python/base"
+  # "python/flask"
+  "go/base"
 ]
 
-async.eachSeries impls, run_implementation, (err) ->
+async.eachSeries impls, (impl, next) -> 
+  console.log("running #{impl}")
+  run_implementation(impl, next)
+, (err) ->
   throw err if err
   console.log "Passed"
+
 
 
 

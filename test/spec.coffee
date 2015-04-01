@@ -26,11 +26,20 @@ describe "GET /no-such-route", ->
       .get "#{URL}/no-such-route"
       .end (err, resp) ->
 
-        console.log(resp.status, resp.statusCode)
-        expect(resp.status).to.equal 404
+        if resp?
+          expect(resp.status).to.equal 404
 
-        content_type = resp.headers['content-type'] or resp.headers['Content-Type']
-        expect(content_type).to.contain "application/json"
+          content_type = resp.headers['content-type'] or resp.headers['Content-Type']
+          expect(content_type).to.contain "application/json"
 
-        expect(resp.body).to.deep.equal error: "Not found"
+          expect(resp.body).to.deep.equal error: "Not found"
+
+        else
+          expect(err.status).to.equal 404
+
+          content_type = err.headers['content-type'] or err.headers['Content-Type']
+          expect(content_type).to.contain "application/json"
+
+          expect(err.body).to.deep.equal error: "Not found"
+
         do done
