@@ -18,6 +18,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
     self.end_headers()
     self.wfile.write(json.dumps({"error": "Not found"}))
 
-address = ('', 8080)
-server = BaseHTTPServer.HTTPServer(address, Handler)
-server.serve_forever()
+if __name__ == '__main__':
+  address = ('', 8080)
+  server = BaseHTTPServer.HTTPServer(address, Handler)
+  server.serve_forever()
