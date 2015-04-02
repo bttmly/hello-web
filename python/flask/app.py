@@ -17,4 +17,4 @@ def page_not_found(error):
                           mimetype="application/json")
 
 if __name__ == "__main__":
-    app.run(None, 8080)
+    app.run('0.0.0.0', 8080)
