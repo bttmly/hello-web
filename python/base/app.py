@@ -6,6 +6,8 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     self.send_header("content-type", "application/json")
 
+    print self.path
+
     if self.path == "/":
       self.send_response(200)
       self.end_headers()
