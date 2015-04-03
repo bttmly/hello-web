@@ -43,23 +43,20 @@ run_implementation = (which, cb) ->
       server.kill()
       if err
         console.log stdout
-        error = new Error "Tests failed for #{which}"
-        return cb(error)
+        return cb new Error "Tests failed for #{which}"
 
       console.log stdout
 
       console.log "#{which} runner exited..."
       timeout 2000, cb
 
-
-
 impls = [
   "node/base"
   "node/express"
   "ruby/base"
   "ruby/sinatra"
-  # "python/base"
-  # "python/flask"
+  "python/base"
+  "python/flask"
   "go/base"
 ]
 

@@ -1,0 +1,12 @@
+language: node_js
+
+before_install:
+  - python --version
+  - ruby --version
+  - node --version
+  - sudo apt-get install golang
+
+install:
+  - make install
+
+script: make test
