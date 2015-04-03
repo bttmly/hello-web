@@ -3,6 +3,8 @@ request = require "superagent"
 
 {URL} = process.env
 
+unless URL then throw new Error "No URL defined."
+
 content_type = (resp) ->
   resp.headers['content-type'] or resp.headers['Content-Type']
 
