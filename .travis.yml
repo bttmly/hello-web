@@ -1,6 +1,8 @@
 language: node_js
 
-before_install:
-  - sudo apt-get install docker.io
+addons:
+  apt:
+    sources:
+    - docker.io
 
 script: make test
