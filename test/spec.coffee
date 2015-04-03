@@ -1,14 +1,18 @@
 {expect} = require "chai"
 request = require "superagent"
 
-URL = "http://localhost:8080"
+console.log process.env.URL
+
+url = process.env.URL
+
+console.log "runner url #{process.env.URL}"
 
 content_type = (resp) ->
   resp.headers['content-type'] or resp.headers['Content-Type']
 
 describe "GET /", ->
   it "200s", (done) ->
-    request.get(URL).end (err, resp) ->
+    request.get(url).end (err, resp) ->
       expect(err).to.not.exist
       expect(resp.status).to.equal 200
       expect(content_type resp).to.contain "application/json"
@@ -17,7 +21,7 @@ describe "GET /", ->
 
 describe "GET /no-such-route", ->
   it "404s", (done) ->
-    request.get("#{URL}/no-such-route").end (err, resp) ->
+    request.get("#{url}/no-such-route").end (err, resp) ->
       expect(err).to.exist
       expect(err.status).to.equal 404
       expect(resp.status).to.equal 404

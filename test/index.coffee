@@ -1,73 +1,92 @@
 {join} = require "path"
 {spawn, exec} = require "child_process"
 
-process.on "SIGINT", ->
-  console.log "SIGINT..."
-
 async = require "async"
+
+root = join __dirname, ".."
+mocha = join __dirname, "node_modules", ".bin", "mocha"
+coffee = join __dirname, "node_modules", "coffee-script/register"
 
 timeout = (t, fn) -> setTimeout fn, t
 
-get_config = (lang) ->
-  switch lang
-    when "node" then ext: ".js", cmd: "node"
-    when "ruby" then ext: ".rb", cmd: "ruby"
-    when "python" then ext: ".py", cmd: "python"
-    when "go" then ext: ".go", cmd: "go", args: ["run"]
-    when "clojure" then ext: ".clj", cmd: "lein"
+docker_build = (which) ->
+  tag = which.replace("/", "-")
+  console.log "tag", tag
+  ["docker", ["build", "--tag='#{tag}'", which]]
+
+docker_run = (which) ->
+  ["docker", ["run", "-d", "-p", "8080:8080", which]]
+
+runner_args = (spec) ->
+  [mocha, ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec], stdio: "inherit"]
+
+kill_all_docker = "docker rm -f $(docker ps -a -q)"
+
+BASE_DELAY = 2000
 
 run_implementation = (which, cb) ->
 
-  console.log which
+  if Array.isArray which
+    [which, delay] = which
+  else
+    delay = DELAY
 
-  [lang, impl] = which.split "/"
-  config = get_config lang
-  
-  root = join __dirname, ".."
-  target = join root, lang, impl
-
-  mocha = join __dirname, "node_modules", ".bin", "mocha"
-  coffee = join __dirname, "node_modules", "coffee-script/register"
   spec = join __dirname, "spec.coffee"
 
-  server_args = ["#{target}/app#{config.ext}"]
+  console.log "building docker container #{which}..."
+  build = spawn docker_build(which)...
 
-  if config.args then server_args = config.args.concat server_args
+  build.on "exit", (status, signal) ->
 
-  server = spawn config.cmd, server_args, (err, stdout, stderr) -> 
+    console.log "starting docker process #{which}..."
+    server = spawn docker_run(which)...
 
-  timeout 2000, ->
-    runner_args = ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec]
-    runner = spawn "#{mocha}", runner_args, {stdio: "inherit"}
+    timeout delay, ->
 
-    runner.on "error", (err) ->
-      console.log err
-      return cb new Error "Tests failed for #{which}"
+      console.log "starting test runner #{which}..."
+      runner = spawn runner_args(spec)...
 
-    runner.on "exit", (code, signal) ->
-      server.kill("SIGINT")
-
-      if code isnt 0
-        console.log stdout
+      runner.on "error", (err) ->
+        console.log err
         return cb new Error "Tests failed for #{which}"
 
-      console.log "#{which} runner exited..."
-      timeout 2000, cb
+      runner.on "exit", (code, signal) ->
+
+        console.log "killing docker processes..."
+        exec kill_all_docker, {}, (err) ->
+          # if err then cb err
+
+          if code isnt 0
+            # console.log stdout
+            return cb new Error "Tests failed for #{which}"
+
+          console.log "#{which} runner exited..."
+          timeout DELAY, cb
 
 impls = [
+  "go/base"
   "node/base"
   "node/express"
-  "ruby/base"
-  "ruby/sinatra"
+  # "ruby/base"
+  # "ruby/sinatra"
   "python/base"
   "python/flask"
-  "go/base"
 ]
 
-async.eachSeries impls, run_implementation, (err) ->
-  throw err if err
-  console.log "Passed"
-  do process.exit
+exec "which boot2docker", (err, stdout) ->
+  if stdout.indexOf "not found" isnt -1
+    return exec "boot2docker ip", (err, stdout) ->
+      process.env.URL = stdout.split(":").pop().trim() + ":8080"
+      do start_running
+
+  process.env.URL = "http://localhost:8080"
+  do start_running
+
+start_running = ->
+  async.eachSeries impls, run_implementation, (err) ->
+    throw err if err
+    console.log "Passed"
+    do process.exit
 
 
 
