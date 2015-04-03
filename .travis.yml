@@ -4,7 +4,6 @@ sudo: required
 
 before_install:
   - sudo apt-get install golang
-  - sudo apt-get install python
   - sudo apt-get install python-pip
 
 script: make test-ci
