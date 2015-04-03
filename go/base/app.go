@@ -18,7 +18,10 @@ func handler(res http.ResponseWriter, req *http.Request) {
 		res.WriteHeader(404)
 	}
 
-	str, _ := json.Marshal(response)
+	str, err := json.Marshal(response)
+	if err != nil {
+		panic(err)
+	}
 	res.Write([]byte(str))
 }
 
