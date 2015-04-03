@@ -6,16 +6,16 @@ async = require "async"
 root = join __dirname, ".."
 mocha = join __dirname, "node_modules", ".bin", "mocha"
 coffee = join __dirname, "node_modules", "coffee-script/register"
+spec = join __dirname, "spec.coffee"
 
 timeout = (t, fn) -> setTimeout fn, t
 
 docker_build = (which) ->
   tag = which.replace("/", "-")
-  console.log "tag", tag
   ["docker", ["build", "--tag='#{tag}'", which]]
 
 docker_run = (which) ->
-  ["docker", ["run", "-d", "-p", "8080:8080", which]]
+  ["docker", ["run", "-p", "8080:8080", which]]
 
 runner_args = (spec) ->
   [mocha, ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec], stdio: "inherit"]
@@ -26,22 +26,21 @@ BASE_DELAY = 2000
 
 run_implementation = (which, cb) ->
 
-  if Array.isArray which
-    [which, delay] = which
-  else
-    delay = DELAY
-
-  spec = join __dirname, "spec.coffee"
-
   console.log "building docker container #{which}..."
   build = spawn docker_build(which)...
 
-  build.on "exit", (status, signal) ->
+  build.on "error", (err) ->
+    console.log err
+    cb err
 
-    console.log "starting docker process #{which}..."
+  build.on "exit", (code) ->
+    unless code is 0
+      return cb new Error "Docker build failed for #{which}"
+
+    console.log "starting docker container #{which}..."
     server = spawn docker_run(which)...
 
-    timeout delay, ->
+    timeout BASE_DELAY, ->
 
       console.log "starting test runner #{which}..."
       runner = spawn runner_args(spec)...
@@ -57,20 +56,19 @@ run_implementation = (which, cb) ->
           # if err then cb err
 
           if code isnt 0
-            # console.log stdout
             return cb new Error "Tests failed for #{which}"
 
-          console.log "#{which} runner exited..."
-          timeout DELAY, cb
+          console.log "tests passed successfully #{which}..."
+          timeout BASE_DELAY, cb
 
 impls = [
-  "go/base"
   "node/base"
   "node/express"
-  # "ruby/base"
-  # "ruby/sinatra"
   "python/base"
   "python/flask"
+  # "go/base"
+  # "ruby/base"
+  # "ruby/sinatra"
 ]
 
 exec "which boot2docker", (err, stdout) ->
