@@ -1,23 +1,28 @@
 {join} = require "path"
 {spawn, exec} = require "child_process"
 
+process.on "SIGINT", ->
+  console.log "SIGINT..."
+
 async = require "async"
 
 timeout = (t, fn) -> setTimeout fn, t
+
+get_config = (lang) ->
+  switch lang
+    when "node" then ext: ".js", cmd: "node"
+    when "ruby" then ext: ".rb", cmd: "ruby"
+    when "python" then ext: ".py", cmd: "python"
+    when "go" then ext: ".go", cmd: "go", args: ["run"]
+    when "clojure" then ext: ".clj", cmd: "lein"
 
 run_implementation = (which, cb) ->
 
   console.log which
 
   [lang, impl] = which.split "/"
-  config =
-    switch lang
-      when "node" then ext: ".js", cmd: "node"
-      when "ruby" then ext: ".rb", cmd: "ruby"
-      when "python" then ext: ".py", cmd: "python"
-      when "go" then ext: ".go", cmd: "go run"
-      when "clojure" then ext: ".clj", cmd: "lein"
-
+  config = get_config lang
+  
   root = join __dirname, ".."
   target = join root, lang, impl
 
@@ -25,27 +30,26 @@ run_implementation = (which, cb) ->
   coffee = join __dirname, "node_modules", "coffee-script/register"
   spec = join __dirname, "spec.coffee"
 
-  server_cmd = "#{config.cmd} #{target}/app#{config.ext}"
+  server_args = ["#{target}/app#{config.ext}"]
 
-  console.log "starting server... #{server_cmd}"
+  if config.args then server_args = config.args.concat server_args
 
-  server = exec server_cmd, (err, stdout, stderr) ->
-  # server = spawn config.cmd, ["#{target}/app#{config.ext}"], (err, stdout, stderr) -> 
+  server = spawn config.cmd, server_args, (err, stdout, stderr) -> 
 
   timeout 2000, ->
-    runner_cmd = "#{mocha} --compilers coffee:#{coffee} --timeout 5000 #{spec}"
-    
-    console.log "starting runner... #{runner_cmd}"
+    runner_args = ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec]
+    runner = spawn "#{mocha}", runner_args, {stdio: "inherit"}
 
-    runner = exec runner_cmd, (err, stdout, stderr) ->
-    # runner = spawn "#{mocha}", ["--compilers", "coffee:#{coffee}", "--timeout", 5000, spec], (err, stdout, stderr) ->
+    runner.on "error", (err) ->
+      console.log err
+      return cb new Error "Tests failed for #{which}"
 
-      server.kill()
-      if err
+    runner.on "exit", (code, signal) ->
+      server.kill("SIGINT")
+
+      if code isnt 0
         console.log stdout
         return cb new Error "Tests failed for #{which}"
-
-      console.log stdout
 
       console.log "#{which} runner exited..."
       timeout 2000, cb
@@ -60,12 +64,10 @@ impls = [
   "go/base"
 ]
 
-async.eachSeries impls, (impl, next) -> 
-  console.log("running #{impl}")
-  run_implementation(impl, next)
-, (err) ->
+async.eachSeries impls, run_implementation, (err) ->
   throw err if err
   console.log "Passed"
+  do process.exit
 
 
 
