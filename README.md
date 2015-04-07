@@ -4,6 +4,18 @@ A collection of tiny 'Hello, World!' servers. For each langauge, there is a "bas
 
 Each implementation is tested against the same spec, located in `test/spec.coffee`. The spec file and test runner are in CoffeeScript for no particular reason other than it's concise and readable.
 
+## Spec
+
+### Endpoint: `GET /`
+Status Code: `200`
+Header: `Content-Type: application/json`
+Response: `{message: 'Hello, World!'}`
+
+### Endpoint: `GET /{any-other-endpoint}`
+Status Code: `404`
+Header: `Content-Type: application/json`
+Response: `{error: 'Not found'}`
+
 
 ### Node
 - built-in `http` module
