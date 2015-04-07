@@ -8,12 +8,17 @@ Each implementation is tested against the same spec, located in `test/spec.coffe
 
 ### Endpoint: `GET /`
 Status Code: `200`
+
 Header: `Content-Type: application/json`
+
 Response: `{message: 'Hello, World!'}`
+
 
 ### Endpoint: `GET /{any-other-endpoint}`
 Status Code: `404`
+
 Header: `Content-Type: application/json`
+
 Response: `{error: 'Not found'}`
 
 
